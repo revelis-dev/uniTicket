@@ -1,0 +1,64 @@
+FROM python:3.11-slim-bookworm
+
+# Default to debug mode
+ENV DEBUG=1
+
+# Create a non-root user
+RUN groupadd --system --gid 1000 wert \
+  && useradd --system --uid 1000 --gid 1000 --no-create-home wert
+
+COPY uniticket /opt/uniticket
+WORKDIR /opt/uniticket
+
+# System Dependecies
+RUN apt update && \
+    apt install --no-install-recommends -y poppler-utils git \
+                   locales xmlsec1 gcc libmagic-dev libmariadb-dev-compat \
+                   libssl-dev libsasl2-dev libldap2-dev net-tools tcpdump \
+                   python3-dev default-libmysqlclient-dev \
+                   build-essential pkg-config  libpq-dev\
+                   curl iproute2 libgtk2.0-0 libpango-1.0-0 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Envs
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Generate Locales
+RUN sed -i 's/# it_IT.UTF-8 UTF-8/it_IT.UTF-8 UTF-8/' /etc/locale.gen
+RUN locale-gen it_IT.UTF-8
+# Set System-wide Locale settings
+ENV LANG=it_IT.UTF-8
+ENV LANGUAGE=it_IT
+ENV LC_ALL=it_IT.UTF-8
+
+# Upgrade pip
+RUN pip install --upgrade pip
+
+# Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install psycopg2 uwsgi --no-cache-dir
+
+RUN mkdir -p /var/log/uniticket
+RUN mkdir -p /etc/uwsgi
+
+COPY uwsgi_setup/uwsgi.ini /etc/uwsgi/uwsgi.ini
+
+# Expose ports (8000 for Django, 3031 for uWSGI)
+EXPOSE 8000 3031
+
+# Copy the entrypoint script
+COPY docker/entrypoint.sh /opt/uniticket
+RUN chmod +x /opt/uniticket/entrypoint.sh
+
+# Set permissions
+RUN chown -R wert:wert /opt/uniticket /var/log/uniticket
+
+# Switch to user
+USER wert
+
+SHELL ["/bin/bash", "-c"] 
+
+# Set entrypoint script
+ENTRYPOINT ["/opt/uniticket/entrypoint.sh"]

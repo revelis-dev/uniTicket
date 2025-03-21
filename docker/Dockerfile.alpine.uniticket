@@ -1,0 +1,95 @@
+# First stage: builder
+FROM python:3.11-alpine AS builder
+
+# Set up environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Set working directory
+WORKDIR /opt/uniticket
+
+# Install build dependencies
+RUN apk add --no-cache \
+    gcc \
+    libc-dev \
+    python3-dev \
+    postgresql-dev \
+    build-base \
+    libffi-dev \
+    openssl-dev \
+    openldap-dev \
+    cyrus-sasl-dev \
+    libxslt-dev \
+    git \
+    curl \
+    && pip install --no-cache-dir --upgrade pip
+
+# Copy requirements and install Python dependencies
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir psycopg2 uwsgi
+
+# Copy application code
+COPY uniticket ./
+
+
+# Second stage: final image
+FROM python:3.11-alpine
+
+# Locale-related environment variables
+ENV LANG=it_IT.UTF-8
+ENV LANGUAGE=it_IT
+ENV LC_ALL=it_IT.UTF-8
+
+# Set up environment variables
+ENV PYTHONDONTWRITEBYTECODE=1
+ENV PYTHONUNBUFFERED=1
+
+# Create non-root user
+RUN addgroup -g 1000 wert && \
+    adduser -u 1000 -G wert -s /bin/sh -D --no-create-home wert
+
+# Set working directory
+WORKDIR /opt/uniticket
+
+# Copy installed Python packages from the builder stage
+COPY --from=builder /usr/local/lib/python3.11/site-packages /usr/local/lib/python3.11/site-packages
+COPY --from=builder /usr/local/bin /usr/local/bin
+
+# Copy application code and other necessary files from the builder stage
+COPY --from=builder /opt/uniticket ./
+
+# Install only runtime dependencies
+RUN apk add --no-cache \
+    poppler-utils \
+    fontconfig \
+    ttf-dejavu \
+    libxml2 \
+    xmlsec \
+    gtk+2.0 \
+    pango \
+    postgresql-libs \
+    file \
+    openssl \
+    && fc-cache -fv
+
+# Generate font canche
+RUN fc-cache -fv
+
+# Set permissions for the non-root user
+RUN mkdir -p /var/log/uniticket /etc/uwsgi \
+    && chown -R wert:wert /opt/uniticket /var/log/uniticket
+
+# Copy uwsgi configuration and entrypoint script
+COPY uwsgi_setup/uwsgi.ini /etc/uwsgi/uwsgi.ini
+COPY docker/entrypoint.sh /opt/uniticket
+RUN chmod +x /opt/uniticket/entrypoint.sh
+
+# Expose ports (8000 for Django, 3031 for uWSGI)
+EXPOSE 8000 3031
+
+# Switch to non-root user
+USER wert
+
+# Set entrypoint
+ENTRYPOINT ["/opt/uniticket/entrypoint.sh"]
