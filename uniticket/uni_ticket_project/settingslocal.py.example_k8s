@@ -265,11 +265,6 @@ if "channels" in INSTALLED_APPS:
         },
     }
 
-[
-    o.strip() for o in os.getenv("ADMINS", ("", "")).split(",") 
-    if o.strip()
-]
-
 
 _admins_env = os.getenv(
     "ADMINS",
