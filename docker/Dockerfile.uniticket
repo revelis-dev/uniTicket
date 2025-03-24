@@ -46,19 +46,16 @@ RUN mkdir -p /etc/uwsgi
 COPY uwsgi_setup/uwsgi.ini /etc/uwsgi/uwsgi.ini
 
 # Expose ports (8000 for Django, 3031 for uWSGI)
-EXPOSE 8000 3031
+EXPOSE 8000 3031 9191
 
 # Copy the entrypoint script
 COPY docker/entrypoint.sh /opt/uniticket
 RUN chmod +x /opt/uniticket/entrypoint.sh
 
 # Set permissions
-RUN chown -R wert:wert /opt/uniticket /var/log/uniticket
+RUN chown -R 1000:1000 /opt/uniticket /var/log/uniticket
 
-# Switch to user
-USER wert
-
-SHELL ["/bin/bash", "-c"] 
+USER 1000
 
 # Set entrypoint script
 ENTRYPOINT ["/opt/uniticket/entrypoint.sh"]
