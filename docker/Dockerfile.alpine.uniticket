@@ -89,3 +89,4 @@ USER 1000
 
 # Set entrypoint
 ENTRYPOINT ["/opt/uniticket/entrypoint.sh"]
+CMD []
