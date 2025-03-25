@@ -70,7 +70,8 @@ RUN apk add --no-cache \
     pango \
     postgresql-libs \
     file \
-    openssl
+    openssl \
+    gettext
 
 # Set permissions for the non-root user
 RUN mkdir -p /var/log/uniticket /etc/uwsgi \

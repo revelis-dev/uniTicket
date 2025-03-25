@@ -20,6 +20,9 @@ python manage.py migrate --noinput
 echo "Collecting static files..."
 python manage.py collectstatic --noinput
 
+echo "Compiling messages..."
+python manage.py compilemessages
+
 # Start the appropriate server
 if [ $# -eq 0 ]; then
     case "$DEBUG" in
