@@ -9,7 +9,7 @@ cd /opt/uniticket
 # Ensure settings file is only copied if it does not exist
 if [ ! -f /opt/uniticket/uni_ticket_project/settingslocal.py ]; then
     echo "Copying settings file..."
-    cp /opt/uniticket/uni_ticket_project/settingslocal.py.example /opt/uniticket/uni_ticket_project/settingslocal.py
+    cp /opt/uniticket/uni_ticket_project/settingslocal.py.example_k8s /opt/uniticket/uni_ticket_project/settingslocal.py
 fi
 
 # Apply database migrations
