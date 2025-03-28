@@ -73,17 +73,18 @@ RUN apk add --no-cache \
     openssl \
     gettext
 
-# Set permissions for the non-root user
-RUN mkdir -p /var/log/uniticket /etc/uwsgi \
-    && chown -R 1000:1000 /opt/uniticket /var/log/uniticket
-
 # Copy uwsgi configuration and entrypoint script
 COPY uwsgi_setup/uwsgi.ini /etc/uwsgi/uwsgi.ini
 COPY docker/entrypoint.sh /opt/uniticket
+
 RUN chmod +x /opt/uniticket/entrypoint.sh
 
 # Expose ports (8000 for Django, 3031 for uWSGI)
 EXPOSE 8000 3031 9191
+
+# Set permissions for the non-root user
+RUN mkdir -p /var/log/uniticket /etc/uwsgi \
+    && chown -R 1000:1000 /opt/uniticket /var/log/uniticket
 
 USER 1000
 
