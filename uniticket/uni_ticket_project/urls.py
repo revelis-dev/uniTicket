@@ -52,6 +52,7 @@ urlpatterns = [
 # urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)
 # urlpatterns += static(settings.STATIC_URL, document_root=settings.STATIC_ROOT)
 
+urlpatterns += (path('markdownx/', include('markdownx.urls')),)
 urlpatterns += (path("", include(uni_ticket.urls, namespace="uni_ticket")),)
 
 if settings.DEBUG:
@@ -189,6 +190,11 @@ if "chat" in settings.INSTALLED_APPS:
     import chat.urls
 
     urlpatterns += (path("", include(chat.urls, "chat")),)
+
+if "app_io" in settings.INSTALLED_APPS:
+    import app_io.urls
+
+    urlpatterns += (path("", include(app_io.urls, "app_io")),)
 
 if "accounts" in settings.INSTALLED_APPS:
     import accounts.urls

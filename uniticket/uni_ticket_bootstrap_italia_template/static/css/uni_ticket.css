@@ -82,9 +82,11 @@ label{
     font-weight: normal;
     margin-bottom: 0;
 }
+/*
 .card .card-body a{
     display: inline;
 }
+*/
 h5.card-title .badge{
     font-size: 1.1rem;
     margin-right: 20px;
@@ -308,6 +310,7 @@ select{
 /**
  * Ticket messages
  */
+.ticket_notes .card .card-body p,
 .ticket_replies .card .card-body p{
     font-size: 1rem;
 }

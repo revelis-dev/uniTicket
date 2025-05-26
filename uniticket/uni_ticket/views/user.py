@@ -1197,7 +1197,7 @@ class TicketDetail(View):
             content_type_id=ContentType.objects.get_for_model(ticket).pk,
             object_id=ticket.pk,
             is_public=True
-        ).select_related('user')
+        ).select_related('user', 'app_io_message')
         ticket_messages = TicketReply.get_unread_messages_count(
             ticket_ids=[ticket.pk], by_operator=True)
         ticket_task = Task.objects.filter(ticket=ticket)
@@ -1291,32 +1291,35 @@ def ticket_message(request, ticket_id):
             logger.info(
                 "[{}] user {} submitted a message"
                 " for ticket {}".format(
-                    timezone.localtime(), request.user, ticket)
+                    timezone.localtime(),
+                    request.user,
+                    ticket)
             )
 
             # add to ticket log history
-            log_msg = _(
-                "Nuovo messaggio (da utente). Oggetto: {} / " "Testo: {}"
-            ).format(ticket_reply.subject, ticket_reply.text)
-            ticket.update_log(request.user, note=log_msg, send_mail=False)
+            log_msg = _("Nuovo messaggio (da utente). Oggetto:{}").format(
+                ticket_reply.subject
+            )
+            ticket.update_log(user=request.user, note=log_msg, send_mail=False)
 
             # Send mail to ticket owner
             mail_params = {
                 "hostname": settings.HOSTNAME,
                 "status": _("inviato"),
-                "message_subject": ticket_reply.subject,
-                "message_text": ticket_reply.text,
                 "ticket": ticket,
                 "user": request.user,
                 "url": request.build_absolute_uri(
                     reverse(
-                        "uni_ticket:ticket_message", kwargs={"ticket_id": ticket.code}
+                        "uni_ticket:ticket_message",
+                        kwargs={"ticket_id": ticket.code}
                     )
                 ),
             }
             m_subject = _(
                 "{} - richiesta {} messaggio inviato".format(
-                    settings.HOSTNAME, ticket)
+                    settings.HOSTNAME,
+                    ticket
+                )
             )
             send_custom_mail(
                 subject=m_subject,
@@ -1342,8 +1345,6 @@ def ticket_message(request, ticket_id):
                 mail_params = {
                     "hostname": settings.HOSTNAME,
                     "url": return_url,
-                    "message_subject": ticket_reply.subject,
-                    "message_text": ticket_reply.text,
                     "ticket": ticket,
                 }
                 send_ticket_mail_to_operators(

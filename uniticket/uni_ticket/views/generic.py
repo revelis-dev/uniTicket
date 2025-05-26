@@ -471,18 +471,17 @@ def ticket_message_delete(request, ticket_message_id):
     messages.add_message(
         request,
         messages.SUCCESS,
-        _("Messaggio <b>{}</b> eliminato con successo." "").format(ticket_message),
+        _("Messaggio <b>{}</b> eliminato con successo.").format(ticket_message),
     )
 
     # delete message
     msg_subject = ticket_message.subject
-    msg_text = ticket_message.text
 
     ticket_message.delete()
 
     # add to ticket log history
-    log_msg = _("Messaggio eliminato. Oggetto: {}" "").format(msg_subject)
-    ticket.update_log(request.user, note=log_msg, send_mail=False)
+    log_msg = _("Messaggio eliminato. Oggetto: {}").format(msg_subject)
+    ticket.update_log(user=request.user, note=log_msg, send_mail=False)
 
     if user_type == "user":
 
@@ -490,8 +489,6 @@ def ticket_message_delete(request, ticket_message_id):
         mail_params = {
             "hostname": settings.HOSTNAME,
             "status": _("eliminato"),
-            "message_subject": msg_subject,
-            "message_text": msg_text,
             "ticket": ticket,
             "user": request.user,
             "url": request.build_absolute_uri(
@@ -499,7 +496,7 @@ def ticket_message_delete(request, ticket_message_id):
                         kwargs={"ticket_id": ticket.code})
             ),
         }
-        m_subject = _("{} - richiesta {} messaggio eliminato" "").format(
+        m_subject = _("{} - richiesta {} messaggio eliminato").format(
             settings.HOSTNAME, ticket
         )
         send_custom_mail(
