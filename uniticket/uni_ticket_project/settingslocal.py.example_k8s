@@ -92,6 +92,7 @@ INSTALLED_APPS = [
 
     "uni_ticket_bootstrap_italia_template",
     # "django_unical_bootstrap_italia",
+    "django_fumg_bootstrap_italia",
     "bootstrap_italia_template",
 
     # "bootstrapform",
@@ -113,8 +114,8 @@ INSTALLED_APPS = [
     # "wkhtmltopdf",
 
     # SAML2 SP
-    # "djangosaml2",
-    # "saml2_sp",
+    "djangosaml2",
+    "saml2_sp",
 
     # protocollo webservice in uso
     # ogni università dovrebbe interfacciare il proprio
@@ -193,10 +194,10 @@ if "djangosaml2"  in INSTALLED_APPS:
 elif "spid_oidc_rp" in INSTALLED_APPS:
     LOGIN_URL = f"/oidc/rp/begin?issuer_id=agid_login"
     LOGOUT_URL = f"/oidc/rpinitiated_logout"
-else:
-    LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
-    LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
-    LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
+# else:
+LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
+LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
+LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
 
 LOGOUT_REDIRECT_URL = os.getenv("LOGOUT_REDIRECT_URL", "/")
 

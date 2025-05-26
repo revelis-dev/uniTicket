@@ -28,6 +28,8 @@ djangosaml2>=1.0.3
 design-django-theme
 # Unical template
 # django-unical-bootstrap-italia==1.2.0
+# Fumg template
+git+https://github.com/francesco-filicetti/django-fumg-bootstrap-italia.git
 
 # Django REST
 djangorestframework>=3.13
