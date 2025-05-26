@@ -61,6 +61,8 @@ COPY --from=builder /opt/uniticket ./
 
 # Install only runtime dependencies
 RUN apk add --no-cache \
+    nano \
+    bash \
     poppler-utils \
     fontconfig \
     ttf-dejavu \
