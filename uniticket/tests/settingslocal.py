@@ -49,7 +49,6 @@ INSTALLED_APPS = [
 
     ##SAML2 SP
     # 'djangosaml2',
-    # 'saml2_sp',
 ]
 
 # chat app settings

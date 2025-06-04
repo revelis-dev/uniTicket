@@ -69,93 +69,10 @@ if settings.DEBUG:
 
 if "nested_admin" in settings.INSTALLED_APPS:
     urlpatterns += (path("nested_admin/", include("nested_admin.urls")),)
-
-if "saml2_sp" in settings.INSTALLED_APPS:
-    import saml2_sp.urls
-
-    # saml2_url_prefix = 'saml2'
-
-    urlpatterns += (
-        path(
-            "",
-            include(
-                (
-                    saml2_sp.urls,
-                    "sp",
-                )
-            ),
-        ),
-    )
-
-    urlpatterns += (
-        path(
-            "{}/login/".format(settings.SAML2_URL_PREFIX),
-            views.LoginView.as_view(),
-            name="login",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "{}/acs/".format(settings.SAML2_URL_PREFIX),
-            views.AssertionConsumerServiceView.as_view(),
-            name="saml2_acs",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "{}/logout/".format(settings.SAML2_URL_PREFIX),
-            views.LogoutInitView.as_view(),
-            name="logout",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "{}/ls/".format(settings.SAML2_URL_PREFIX),
-            views.LogoutView.as_view(),
-            name="saml2_ls",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "{}/ls/post/".format(settings.SAML2_URL_PREFIX),
-            views.LogoutView.as_view(),
-            name="saml2_ls_post",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "{}/metadata/".format(settings.SAML2_URL_PREFIX),
-            views.MetadataView.as_view(),
-            name="saml2_metadata",
-        ),
-    )
-
-elif "spid_oidc_rp" in settings.INSTALLED_APPS:
-    from django.views.generic.base import RedirectView
-
-    urlpatterns += (
-        path(
-            "",
-            include(("spid_oidc_rp.urls", "spid_oidc_rp"),
-                    namespace="spid_oidc_rp"),
-            name="spid_oidc_rp",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "oidc/login",
-            RedirectView.as_view(url=f"{settings.LOGIN_URL}"),
-            name="login",
-        ),
-    )
-    urlpatterns += (
-        path(
-            "oidc/logout",
-            RedirectView.as_view(url=f"{settings.LOGOUT_URL}"),
-            name="logout",
-        ),
-    )
-
+    
+if "django_spid_cie_sp" in settings.INSTALLED_APPS:
+    import django_spid_cie_sp.urls
+    urlpatterns += (path("", include(django_spid_cie_sp.urls, "django_spid_cie_sp")),)
 else:
     # local_url_prefix = 'local'
     urlpatterns += (

@@ -90,6 +90,9 @@ RUN mkdir -p /var/log/uniticket /etc/uwsgi \
 
 USER 1000
 
+# Metadata
+RUN mkdir -p /opt/uniticket/data/metadata
+
 # Set entrypoint
 ENTRYPOINT ["/opt/uniticket/entrypoint.sh"]
 CMD []

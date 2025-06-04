@@ -22,6 +22,7 @@ git+https://github.com/peppelinux/FileSignatureValidator.git
 
 # SAML2
 djangosaml2>=1.0.3
+git+https://github.com/francesco-filicetti/django-spid-cie-sp.git
 
 # Bootstrap Italia
 #git+https://github.com/italia/design-django-theme.git@v1

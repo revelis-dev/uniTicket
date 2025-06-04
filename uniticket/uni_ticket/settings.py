@@ -23,7 +23,7 @@ CATEGORY_CONDITIONS_ATTACHMENT_SUBFOLDER = getattr(
 )
 
 UNITICKET_JWE_RSA_KEY_PATH = getattr(
-    settings, "UNITICKET_JWE_RSA_KEY_PATH", "saml2_sp/saml2_config/certificates/key.pem"
+    settings, "UNITICKET_JWE_RSA_KEY_PATH", ""
 )
 UNITICKET_JWE_ALG = getattr(settings, "UNITICKET_JWE_ALG", "RSA-OAEP")
 UNITICKET_JWE_ENC = getattr(settings, "UNITICKET_JWE_ENC", "A128CBC-HS256")

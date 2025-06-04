@@ -112,10 +112,10 @@ INSTALLED_APPS = [
 
     # Libreria per la generazione dei PDF
     # "wkhtmltopdf",
-
-    # SAML2 SP
+    
     "djangosaml2",
-    "saml2_sp",
+    "django_spid_cie_sp",
+    "app_io",
 
     # protocollo webservice in uso
     # ogni università dovrebbe interfacciare il proprio
@@ -134,6 +134,7 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "accounts.middlewares.AccountsChangeDataMiddleware",
 ]
 
 if "djangosaml2" in INSTALLED_APPS:
@@ -154,6 +155,8 @@ TEMPLATES = [
         },
     },
 ]
+
+SAFE_URL_APPS = ["admin", "accounts", "api_rest", "django_spid_cie_sp"]
 
 HOME_PAGE = os.getenv("HOME_PAGE", "/")
 
@@ -178,26 +181,27 @@ if not os.path.exists(TMP_DIR):
 
 
 # DjangoSAML2 conf
-if "djangosaml2"  in INSTALLED_APPS:
-    from saml2_sp.settings import *
-    # pySAML2 SP mandatory
-    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-    SAML2_URL_PREFIX = "saml2"
-    LOGIN_URL = f"/{SAML2_URL_PREFIX}/login"
-    LOGOUT_URL = f"/{SAML2_URL_PREFIX}/logout"
-
-    AUTHENTICATION_BACKENDS = (
-        "django.contrib.auth.backends.ModelBackend",
-        "djangosaml2.backends.Saml2Backend",
-    )
-elif "spid_oidc_rp" in INSTALLED_APPS:
-    LOGIN_URL = f"/oidc/rp/begin?issuer_id=agid_login"
-    LOGOUT_URL = f"/oidc/rpinitiated_logout"
-# else:
-LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
-LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
-LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
+if "django_spid_cie_sp" in INSTALLED_APPS:
+    from django_spid_cie_sp.settings import *
+    MIDDLEWARE.append("djangosaml2.middleware.SamlSessionMiddleware")
+    CIE_SP_METADATA = os.getenv("CIE_SP_METADATA", "tuo_path/metadata/metadata_cie_signed.xml")
+    SPID_SP_METADATA = os.getenv("SPID_SP_METADATA", "/tuo_path/metadata/metadata_spid_signed.xml")
+    KEY_FILE = os.getenv("KEY_FILE", "/tuo_path/certificates/key.pem") 
+    CERT_FILE = os.getenv("CERT_FILE", "/tuo_path/certificates/crt.pem")
+    CIE_PROD = os.getenv("CIE_PROD", False).lower() in ("true", "1", "yes")
+    SPID_PROD = os.getenv("SPID_PROD", False).lower() in ("true", "1", "yes")
+    SPID_VALIDATION = os.getenv("SPID_VALIDATION", False).lower() in ("true", "1", "yes")
+    SPID_SP_ENTITY_ID = os.getenv("SPID_SP_ENTITY_ID", "")
+    try:
+        SPID_SP_ATTRIBUTE_CONSUMER_SERVICE_INDEX = int(
+            os.getenv("SPID_SP_ATTRIBUTE_CONSUMER_SERVICE_INDEX", "1")
+        )
+    except ValueError:
+        SPID_SP_ATTRIBUTE_CONSUMER_SERVICE_INDEX = 1
+else:
+    LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
+    LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
+    LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
 
 LOGOUT_REDIRECT_URL = os.getenv("LOGOUT_REDIRECT_URL", "/")
 
@@ -314,6 +318,24 @@ LOGGING = {
             "formatter": "verbose",
             "filename": "/var/log/uniticket/uniticket.log",
         },
+        'spid_cie_access_file': {
+            'level': 'INFO',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/var/log/uniticket/access.log',  # path personalizzabile ma la cartella di destinazione deve essere presente
+            'when': 'midnight',       # rotazione ogni giorno a mezzanotte
+            'interval': 1,            # ogni 1 giorno
+            'backupCount': 730,       # conserva 730 file, cioè 2 anni circa
+            'formatter': 'verbose',
+        },
+        'spid_cie_error_file': {
+            'level': 'ERROR',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/var/log/uniticket/error.log',  # path personalizzabile ma la cartella di destinazione deve essere presente
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 730,
+            'formatter': 'verbose',
+        },
     },
     "loggers": {
         "": {
@@ -331,6 +353,16 @@ LOGGING = {
             "handlers": ["console"],
             "level": "CRITICAL",
             "propagate": False,
+        },
+         'spid_cie.access': {
+            'handlers': ['spid_cie_access_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'spid_cie.error': {
+            'handlers': ['spid_cie_error_file'],
+            'level': 'ERROR',
+            'propagate': False,
         },
         # "django.request": {
             # "handlers": ["mail_admins"],
@@ -377,8 +409,7 @@ MAX_UPLOAD_SIZE = int(os.getenv("MAX_UPLOAD_SIZE", "10485760"))
 
 # UNITICKET JWE support
 UNITICKET_JWE_RSA_KEY_PATH = os.getenv(
-    "UNITICKET_JWE_RSA_KEY_PATH",
-    "saml2_sp/saml2_config/certificates/key.pem"
+    "UNITICKET_JWE_RSA_KEY_PATH", "tuo_path/certificates/key.pem"
 )
 # end JWE support
 
