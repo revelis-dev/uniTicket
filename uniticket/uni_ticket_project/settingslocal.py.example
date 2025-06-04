@@ -108,7 +108,8 @@ INSTALLED_APPS = [
 
     # SAML2 SP
     # 'djangosaml2',
-    # 'saml2_sp',
+    # 'django_spid_cie_sp',
+    # 'app_io',
 
     # protocollo webservice in uso
     # ogni università dovrebbe interfacciare il proprio
@@ -134,6 +135,7 @@ TEMPLATES = [
     },
 ]
 
+SAFE_URL_APPS = ["admin", "accounts", "api_rest", "django_spid_cie_sp"]
 HOME_PAGE = "/"
 
 # Static files (CSS, JavaScript, Images)
@@ -164,51 +166,45 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "accounts.middlewares.AccountsChangeDataMiddleware",
 ]
 
 # markdownX
 MARKDOWNX_UPLOAD_CONTENT_TYPES = []
 # END markdownx
 
-if "djangosaml2" in INSTALLED_APPS:
-    MIDDLEWARE.append("djangosaml2.middleware.SamlSessionMiddleware")
-
 # DjangoSAML2 conf
-if 'djangosaml2'  in INSTALLED_APPS:
-    from saml2_sp.settings import *
-    # pySAML2 SP mandatory
-    SESSION_EXPIRE_AT_BROWSER_CLOSE = True
-
-    SAML2_URL_PREFIX = 'saml2'
-    LOGIN_URL = f'/{SAML2_URL_PREFIX}/login'
-    LOGOUT_URL = f'/{SAML2_URL_PREFIX}/logout'
-
-    AUTHENTICATION_BACKENDS = (
-        'django.contrib.auth.backends.ModelBackend',
-        'djangosaml2.backends.Saml2Backend',
-    )
-elif 'spid_oidc_rp' in INSTALLED_APPS:
-    LOGIN_URL = f'/oidc/rp/begin?issuer_id=agid_login'
-    LOGOUT_URL = f'/oidc/rpinitiated_logout'
+if "django_spid_cie_sp" in INSTALLED_APPS:
+    from django_spid_cie_sp.settings import *
+    MIDDLEWARE.append("djangosaml2.middleware.SamlSessionMiddleware")
+    CIE_SP_METADATA = "tuo_path/metadata/metadata_cie_signed.xml"
+    SPID_SP_METADATA = "/tuo_path/metadata/metadata_spid_signed.xml"
+    KEY_FILE = "/tuo_path/certificates/key.pem"
+    CERT_FILE = "/tuo_path/certificates/crt.pem"
+    CIE_PROD = False
+    SPID_PROD = False
+    SPID_VALIDATION = False
+    SPID_SP_ENTITY_ID = ""
+    SPID_SP_ATTRIBUTE_CONSUMER_SERVICE_INDEX = 1
 else:
-    LOCAL_URL_PREFIX = 'local'
-    LOGIN_URL = f'/{LOCAL_URL_PREFIX}/login/'
-    LOGOUT_URL = f'/{LOCAL_URL_PREFIX}/logout/'
+    LOCAL_URL_PREFIX = "local"
+    LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
+    LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
 
-LOGOUT_REDIRECT_URL='/'
+LOGOUT_REDIRECT_URL = "/"
 
 # custom forms (django-form-builder)
 CUSTOM_WIDGETS_IN_FORMSETS = False
 CUSTOM_WIDGETS = {
-    'BaseDateField': 'bootstrap_italia_template.widgets.BootstrapItaliaDateWidget',
-    'BaseDateTimeSimpleField': 'uni_ticket_bootstrap_italia_template.widgets.UniTicketDateTimeWidget',
-    'CustomSelectBoxField': 'bootstrap_italia_template.widgets.BootstrapItaliaSelectWidget',
-    'CustomRadioBoxField': 'bootstrap_italia_template.widgets.BootstrapItaliaRadioWidget',
-    # 'BaseDateField': forms.widgets.DateInput(),
-    # 'DateField': forms.widgets.DateInput(),
-    # 'CustomSelectBoxField': forms.widgets.Select(),
-    # 'CustomRadioBoxField': forms.widgets.RadioSelect(),
-    'TextAreaField': forms.widgets.Textarea(attrs={"rows":2})
+    "BaseDateField": "bootstrap_italia_template.widgets.BootstrapItaliaDateWidget",
+    "BaseDateTimeSimpleField": "uni_ticket_bootstrap_italia_template.widgets.UniTicketDateTimeWidget",
+    "CustomSelectBoxField": "bootstrap_italia_template.widgets.BootstrapItaliaSelectWidget",
+    "CustomRadioBoxField": "bootstrap_italia_template.widgets.BootstrapItaliaRadioWidget",
+    # "BaseDateField": forms.widgets.DateInput(),
+    # "DateField": forms.widgets.DateInput(),
+    # "CustomSelectBoxField": forms.widgets.Select(),
+    # "CustomRadioBoxField": forms.widgets.RadioSelect(),
+    "TextAreaField": forms.widgets.Textarea(attrs={"rows":2})
 }
 
 # This parameters define the roles of users to open ticket
@@ -220,6 +216,7 @@ EMPLOYEE_ATTRIBUTE_NAME = 'identificativo_dipendente'
 USER_ATTRIBUTE_NAME = 'identificativo_utente'
 USER_ATTRIBUTE_LABEL = 'utente'
 
+EMAIL_SENDER = f'ticket.no-reply@{HOSTNAME}'
 DEFAULT_FROM_EMAIL = 'uniticket-noreply@server.it'
 SERVER_EMAIL = 'uniticket-error@server.it'
 EMAIL_HOST = 'smtp.server.it'
@@ -227,6 +224,7 @@ EMAIL_HOST = 'smtp.server.it'
 # EMAIL_HOST_PASSWORD = 'mypassword'
 EMAIL_PORT = 587
 EMAIL_USE_TLS = True
+EMAIL_USE_SSL = False
 
 # needed to have debug var in template context
 INTERNAL_IPS = (
@@ -263,58 +261,92 @@ if "channels" in INSTALLED_APPS:
 ADMINS = [('Giuseppe De Marco', 'giuseppe.demarco@server.it'),
           ('Francesco Filicetti', 'francesco.filicetti@server.it'),]
 
+LOG_LEVEL = "DEBUG"
+
 LOGGING = {
-    'version': 1,
-    'disable_existing_loggers': False,
-    'formatters': {
-    'verbose': {
-        'format': '%(levelname)s [%(asctime)s] %(module)s %(message)s'
+    "version": 1,
+    "disable_existing_loggers": False,
+    "formatters": {
+    "verbose": {
+        "format": "%(levelname)s [%(asctime)s] %(module)s %(message)s"
         },
     },
-    'filters': {
-        'require_debug_false': {
-            '()': 'django.utils.log.RequireDebugFalse'
+    "filters": {
+        "require_debug_false": {
+            "()": "django.utils.log.RequireDebugFalse"
         }
     },
-    'handlers': {
-        'mail_admins': {
-            'level': 'ERROR',
-            'filters': ['require_debug_false'],
-            'class': 'django.utils.log.AdminEmailHandler'
+    "handlers": {
+        "mail_admins": {
+            "level": "ERROR",
+            "filters": ["require_debug_false"],
+            "class": "django.utils.log.AdminEmailHandler"
         },
-        'console': {
+        "console": {
+            "level": LOG_LEVEL,
+            "class": "logging.StreamHandler",
+        },
+        "file": {
+            "class": "logging.FileHandler",
+            "level": LOG_LEVEL,
+            "formatter": "verbose",
+            "filename": "/var/log/uniticket/uniticket.log",
+        },
+        'spid_cie_access_file': {
             'level': 'INFO',
-            'class': 'logging.StreamHandler',
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/var/log/uniticket/access.log',  # path personalizzabile ma la cartella di destinazione deve essere presente
+            'when': 'midnight',       # rotazione ogni giorno a mezzanotte
+            'interval': 1,            # ogni 1 giorno
+            'backupCount': 730,       # conserva 730 file, cioè 2 anni circa
+            'formatter': 'verbose',
         },
-        # 'file': {
-            # 'class': 'logging.handlers.RotatingFileHandler',
-            # 'formatter': 'verbose',
-            # 'filename': '/tmp/peo.unical.it-error-handler.log',
-            # 'maxBytes': 1024000,
-            # 'backupCount': 3,
-            # },
-    },
-    'loggers': {
-        # disables Invalid HTTP_HOST header emails
-        'django.security.DisallowedHost': {
-                'handlers': ['mail_admins'],
-                'level': 'CRITICAL',
-                'propagate': False,
-        },
-        # 'django.request': {
-            # 'handlers': ['mail_admins'],
-            # 'level': 'ERROR',
-            # 'propagate': True,
-        # },
-        # 'djangosaml2': {
-            # 'handlers': ['console'],
-            # 'level': 'DEBUG',
-        # },
-        'django': {
-            'handlers': ['console','mail_admins'],
-            'propagate': True,
+        'spid_cie_error_file': {
             'level': 'ERROR',
-        }
+            'class': 'logging.handlers.TimedRotatingFileHandler',
+            'filename': '/var/log/uniticket/error.log',  # path personalizzabile ma la cartella di destinazione deve essere presente
+            'when': 'midnight',
+            'interval': 1,
+            'backupCount': 730,
+            'formatter': 'verbose',
+        },
+    },
+    "loggers": {
+        "": {
+            "handlers": ["console", "mail_admins"],
+            "level": LOG_LEVEL,
+            "propagate": False,
+        },
+        "django": {
+            "handlers": ["console","mail_admins"],
+            "propagate": False,
+            "level": LOG_LEVEL,
+        },
+        # disables Invalid HTTP_HOST header emails
+        "django.security.DisallowedHost": {
+            "handlers": ["console"],
+            "level": "CRITICAL",
+            "propagate": False,
+        },
+         'spid_cie.access': {
+            'handlers': ['spid_cie_access_file'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'spid_cie.error': {
+            'handlers': ['spid_cie_error_file'],
+            'level': 'ERROR',
+            'propagate': False,
+        },
+        # "django.request": {
+            # "handlers": ["mail_admins"],
+            # "level": LOG_LEVEL,
+            # "propagate": True,
+        # },
+        # "djangosaml2": {
+            # "handlers": ["console"],
+            # "level": LOG_LEVEL,
+        # },
     }
 }
 
