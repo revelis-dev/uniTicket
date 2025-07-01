@@ -77,17 +77,21 @@ else:
     # local_url_prefix = 'local'
     urlpatterns += (
         path(
-            "{}/login/".format(settings.LOCAL_URL_PREFIX),
-            auth_views.LoginView.as_view(extra_context={'base_template': DEFAULT_BASE_TEMPLATE},
-                                         template_name="login.html"),
+            settings.LOCAL_LOGIN_URL,
+            auth_views.LoginView.as_view(
+                template_name="login.html",
+                extra_context={'base_template': DEFAULT_BASE_TEMPLATE}
+            ),
             name="login",
         ),
     )
+
+if settings.LOCAL_LOGOUT_URL:
     urlpatterns += (
         path(
-            "{}/logout/".format(settings.LOCAL_URL_PREFIX),
+            settings.LOCAL_LOGOUT_URL,
             auth_views.LogoutView.as_view(
-                template_name="logout.html", next_page="/"),
+                template_name="logout.html", next_page=settings.LOGOUT_REDIRECT_URL),
             name="logout",
         ),
     )
