@@ -341,10 +341,13 @@ LOGGING = {
             'backupCount': 730,
             'formatter': 'verbose',
         },
+        "null": {
+            "class": "logging.NullHandler",
+        },
     },
     "loggers": {
         "": {
-            "handlers": ["console", "mail_admins"],
+            "handlers": ["console", "mail_admins",],
             "level": LOG_LEVEL,
             "propagate": False,
         },
@@ -368,6 +371,11 @@ LOGGING = {
             'handlers': ['spid_cie_error_file'],
             'level': 'ERROR',
             'propagate': False,
+        },
+        "saml2.sigver": {
+            "handlers": ["null"],
+            "level": "WARNING",
+            "propagate": False,
         },
         # "django.request": {
             # "handlers": ["mail_admins"],
