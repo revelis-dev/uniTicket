@@ -94,6 +94,8 @@ INSTALLED_APPS = [
     # "django_unical_bootstrap_italia",
     "django_fumg_bootstrap_italia",
     "bootstrap_italia_template",
+    
+    "markdownx",
 
     # "bootstrapform",
     "uni_ticket",
@@ -198,10 +200,13 @@ if "django_spid_cie_sp" in INSTALLED_APPS:
         )
     except ValueError:
         SPID_SP_ATTRIBUTE_CONSUMER_SERVICE_INDEX = 1
-else:
-    LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
-    LOGIN_URL = f"/{LOCAL_URL_PREFIX}/login/"
-    LOGOUT_URL = f"/{LOCAL_URL_PREFIX}/logout/"
+
+LOCAL_URL_PREFIX = os.getenv("LOCAL_URL_PREFIX", "local")
+LOCAL_LOGIN_URL = f"{LOCAL_URL_PREFIX}/login/"
+LOCAL_LOGOUT_URL = f"{LOCAL_URL_PREFIX}/logout/"
+
+ALLOW_USER_REGISTRATION = os.getenv("ALLOW_USER_REGISTRATION", False).lower() in ("true", "1", "yes")
+LOCAL_REGISTRATION_URL = os.getenv("LOCAL_REGISTRATION_URL", "account/create/")
 
 LOGOUT_REDIRECT_URL = os.getenv("LOGOUT_REDIRECT_URL", "/")
 
@@ -583,3 +588,5 @@ STATS_MAX_DAYS = int(os.getenv("STATS_MAX_DAYS", "30"))
 # Default Bootstrap Italia template: "bootstrap-italia-base.html"
 # Example: Unical template: "base-setup.html"
 DEFAULT_BASE_TEMPLATE = os.getenv("DEFAULT_BASE_TEMPLATE", "bootstrap-italia-base.html")
+
+LOGO_URL = os.getenv("LOGO_URL", "https://www.fondazioneumg.it/immagini/logo/logo-ente.png")

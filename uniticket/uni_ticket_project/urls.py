@@ -73,8 +73,8 @@ if "nested_admin" in settings.INSTALLED_APPS:
 if "django_spid_cie_sp" in settings.INSTALLED_APPS:
     import django_spid_cie_sp.urls
     urlpatterns += (path("", include(django_spid_cie_sp.urls, "django_spid_cie_sp")),)
-else:
-    # local_url_prefix = 'local'
+
+if settings.LOCAL_LOGIN_URL:
     urlpatterns += (
         path(
             settings.LOCAL_LOGIN_URL,
@@ -95,7 +95,6 @@ if settings.LOCAL_LOGOUT_URL:
             name="logout",
         ),
     )
-
 
 if "djangosaml2" in settings.INSTALLED_APPS:
     import djangosaml2.urls
